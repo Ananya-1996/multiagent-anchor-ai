@@ -1,0 +1,44 @@
+
+<!DOCTYPE html>
+<html>
+<body style="font-family:Segoe UI;background:linear-gradient(to right,#a1c4fd,#c2e9fb);margin:0">
+<div style="max-width:700px;margin:40px auto;background:white;border-radius:16px;padding:15px;height:80vh;display:flex;flex-direction:column">
+<h3>🌿 Daily Support Assistant</h3>
+<div id="chat" style="flex:1;overflow:auto"></div>
+<div>
+<input id="msg" style="width:70%">
+<button onclick="send()">Send</button>
+<button onclick="voice()">🎤</button>
+</div>
+</div>
+
+<script>
+function add(t,c){
+ let d=document.createElement("div");
+ d.style.margin="10px";d.style.padding="10px";d.style.borderRadius="10px";
+ d.style.background=c=="user"?"#5a67d8":"#edf2f7";
+ d.style.color=c=="user"?"white":"black";
+ d.innerText=t;
+ document.getElementById("chat").appendChild(d);
+}
+
+async function send(){
+ let m=document.getElementById("msg").value;
+ if(!m) return;
+ add(m,"user");
+ document.getElementById("msg").value="";
+ let r=await fetch("/chat",{method:"POST",headers:{"Content-Type":"application/json"},body:JSON.stringify({message:m})});
+ let d=await r.json();
+ add(d.message,"bot");
+}
+
+function voice(){
+ const rec=new(window.SpeechRecognition||window.webkitSpeechRecognition)();
+ rec.onresult=e=>{
+ document.getElementById("msg").value=e.results[0][0].transcript;
+ send();}
+ rec.start();
+}
+</script>
+</body>
+</html>
