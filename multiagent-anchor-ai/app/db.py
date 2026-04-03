@@ -1,23 +1,10 @@
-
 import sqlite3
-conn=sqlite3.connect("data.db",check_same_thread=False)
+conn=sqlite3.connect('data.db',check_same_thread=False)
 cur=conn.cursor()
-
-cur.execute("CREATE TABLE IF NOT EXISTS events(id INTEGER PRIMARY KEY, text TEXT, time TEXT)")
-cur.execute("CREATE TABLE IF NOT EXISTS memory(id INTEGER PRIMARY KEY, text TEXT)")
+cur.execute('CREATE TABLE IF NOT EXISTS events(id INTEGER PRIMARY KEY, text TEXT, time TEXT)')
+cur.execute('CREATE TABLE IF NOT EXISTS dashboard(id INTEGER PRIMARY KEY, mood TEXT, tasks_done INTEGER, streak INTEGER)')
 conn.commit()
-
-def save_event(text,time):
-    cur.execute("INSERT INTO events(text,time) VALUES(?,?)",(text,time))
-    conn.commit()
-
-def get_events():
-    return cur.execute("SELECT * FROM events").fetchall()
-
-def save_memory(text):
-    cur.execute("INSERT INTO memory(text) VALUES(?)",(text,))
-    conn.commit()
-
-def get_last_memory():
-    res=cur.execute("SELECT text FROM memory ORDER BY id DESC LIMIT 1").fetchone()
-    return res[0] if res else None
+def save_event(text,time): cur.execute('INSERT INTO events(text,time) VALUES(?,?)',(text,time));conn.commit()
+def get_events(): return cur.execute('SELECT * FROM events').fetchall()
+def save_dashboard(mood='🙂 okay'): cur.execute('INSERT INTO dashboard(mood,tasks_done,streak) VALUES(?,?,?)',(mood,1,1));conn.commit()
+def get_dashboard(): r=cur.execute('SELECT mood,tasks_done,streak FROM dashboard ORDER BY id DESC LIMIT 1').fetchone(); return r if r else ('🙂 okay',0,1)
