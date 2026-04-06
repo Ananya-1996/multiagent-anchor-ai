@@ -1,3 +1,32 @@
-from app.tools import support,weather,calendar,task,notes,routine,suggestion,general
-MAP={'support':support,'weather':weather,'calendar':calendar,'task':task,'notes':notes,'routine':routine,'suggestion':suggestion,'general':general}
-def execute(steps): return [MAP[s['tool']](s['input']) for s in steps]
+from app.tools import support, weather, calendar, notes, routine, suggestion, general
+
+def execute(steps):
+    out = []
+
+    for s in steps:
+        tool = s["tool"]
+
+        if tool == "support":
+            res = support(s["input"])
+
+        elif tool == "weather":
+            res = weather(s["input"])
+
+        elif tool == "calendar":
+            res = calendar(s["input"])
+
+        elif tool == "notes":
+            res = notes(s["input"])
+
+        elif tool == "routine":
+            res = routine(s["input"])
+
+        elif tool == "suggestion":
+            res = suggestion(s["input"])
+
+        else:
+            res = general(s["input"])
+
+        out.append(res)
+
+    return out

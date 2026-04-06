@@ -1,1 +1,253 @@
-<html><body style='font-family:Segoe UI;background:#a1c4fd;margin:0'><div style='max-width:700px;margin:20px auto;background:white;padding:15px;border-radius:12px;height:90vh;display:flex;flex-direction:column'><div id='dashboard'></div><div id='agentBox'>🤖 Ready</div><div id='chat' style='flex:1;overflow:auto'></div><div><input id='msg' style='width:70%'><button onclick='send()'>Send</button><button onclick='voice()'>🎤</button></div></div><script>function updateDashboard(d){document.getElementById('dashboard').innerHTML='🌿 Dashboard<br>Mood:'+d.mood+'<br>Tasks:'+d.tasks+'<br>Streak:'+d.streak;}function animateAgents(a){let b=document.getElementById('agentBox');b.innerHTML='';let i=0;function step(){if(i<a.length){b.innerHTML+='⚡ '+a[i]+'<br>';i++;setTimeout(step,400);}}step();}function add(t,c){let d=document.createElement('div');d.style.margin='10px';d.style.padding='10px';d.style.borderRadius='10px';d.style.background=c=='user'?'#667eea':'#edf2f7';d.style.color=c=='user'?'white':'black';d.innerHTML=t.replace(/\n/g,'<br>');document.getElementById('chat').appendChild(d);}async function send(){let m=document.getElementById('msg').value;if(!m)return;add(m,'user');document.getElementById('msg').value='';document.getElementById('agentBox').innerHTML='🤖 Thinking...';let r=await fetch('/chat',{method:'POST',headers:{'Content-Type':'application/json'},body:JSON.stringify({message:m})});let d=await r.json();animateAgents(d.agents);updateDashboard(d.dashboard);setTimeout(()=>{add(d.message,'bot');},600);}function voice(){const rec=new(window.SpeechRecognition||window.webkitSpeechRecognition)();rec.onresult=e=>{document.getElementById('msg').value=e.results[0][0].transcript;send();};rec.start();}</script></body></html>
+<!DOCTYPE html>
+<html>
+<head>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<style>
+
+/* 🌿 BACKGROUND */
+body {
+  margin: 0;
+  font-family: 'Inter', sans-serif;
+
+  background: url('https://images.unsplash.com/photo-1586075010923-2dd4570fb338')
+              no-repeat center center fixed;
+  background-size: cover;
+}
+
+/* 🌙 SOFT OVERLAY */
+body::before {
+  content: "";
+  position: fixed;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 30, 20, 0.12);
+  z-index: -1;
+}
+
+/* 🧊 GLASS CONTAINER (FIXED) */
+.container {
+  position: relative;
+  max-width: 750px;
+  margin: 40px auto;
+  padding: 20px;
+  border-radius: 20px;
+  height: 85vh;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+
+  background: rgba(255, 255, 255, 0.12); /* lighter */
+  backdrop-filter: blur(30px);           /* stronger blur */
+
+  border: 1px solid rgba(255,255,255,0.3);
+  box-shadow: 0 8px 40px rgba(0,0,0,0.15);
+}
+
+/* ✨ INNER GLOW */
+.container::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  border-radius: 20px;
+  background: rgba(255,255,255,0.05);
+  pointer-events: none;
+}
+
+/* 🌿 HEADER */
+.header {
+  font-size: 18px;
+  font-weight: 600;
+  color: #1a3d2f;
+}
+
+/* 📊 DASHBOARD */
+.dashboard {
+  background: rgba(255,255,255,0.25);
+  backdrop-filter: blur(15px);
+  border-radius: 12px;
+  padding: 12px;
+}
+
+/* 🤖 AGENT PANEL */
+#agentBox {
+  background: rgba(255,255,255,0.2);
+  backdrop-filter: blur(12px);
+  border-radius: 10px;
+  padding: 10px;
+  font-size: 13px;
+}
+
+/* 💬 CHAT */
+.chat {
+  flex: 1;
+  overflow: auto;
+}
+
+/* 💬 MESSAGE */
+.msg {
+  max-width: 70%;
+  margin: 10px;
+  padding: 14px;
+  border-radius: 16px;
+  animation: fadeIn 0.3s ease;
+  line-height: 1.5;
+}
+
+/* 👤 USER */
+.user {
+  background: linear-gradient(to right,#667eea,#764ba2);
+  color: white;
+  margin-left: auto;
+}
+
+/* 🤖 BOT */
+.bot {
+  background: rgba(255,255,255,0.4);
+  backdrop-filter: blur(15px);
+  border: 1px solid rgba(255,255,255,0.2);
+}
+
+/* ✍️ INPUT */
+.input-area {
+  display: flex;
+  gap: 8px;
+}
+
+input {
+  flex: 1;
+  padding: 12px;
+  border-radius: 10px;
+  border: none;
+
+  background: rgba(255,255,255,0.3);
+  backdrop-filter: blur(10px);
+}
+
+/* 🔘 BUTTON */
+button {
+  padding: 10px 14px;
+  border-radius: 10px;
+  border: none;
+  background: #667eea;
+  color: white;
+  cursor: pointer;
+}
+
+/* ✨ ANIMATION */
+@keyframes fadeIn {
+  from {opacity:0; transform:translateY(10px);}
+  to {opacity:1; transform:translateY(0);}
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<div class="header">🌿 Daily Support Assistant</div>
+
+<div id="dashboard" class="dashboard"></div>
+
+<div id="agentBox">🤖 Ready</div>
+
+<div id="chat" class="chat"></div>
+
+<div class="input-area">
+  <input id="msg" placeholder="Talk to me...">
+  <button onclick="send()">Send</button>
+  <button onclick="voice()">🎤</button>
+</div>
+
+</div>
+
+<script>
+
+/* FORMAT TEXT */
+function formatMessage(text){
+  text = text.replace(/\*\*(.*?)\*\*/g, "<b>$1</b>");
+  text = text.replace(/(https?:\/\/[^\s]+)/g,'<a href="$1" target="_blank">$1</a>');
+  text = text.replace(/\n/g,"<br>");
+  return text;
+}
+
+/* ADD MESSAGE */
+function addMessage(text,type){
+  let div=document.createElement("div");
+  div.className="msg "+type;
+  div.innerHTML=formatMessage(text);
+  document.getElementById("chat").appendChild(div);
+  document.getElementById("chat").scrollTop = chat.scrollHeight;
+}
+
+/* DASHBOARD */
+function updateDashboard(d){
+  document.getElementById("dashboard").innerHTML=`
+  <div style="display:flex;justify-content:space-between">
+    <b>🌿 Today</b>
+    <span>🔥 ${d.streak} days</span>
+  </div>
+  <div style="margin-top:8px">Mood: ${d.mood}</div>
+  <div>Tasks Completed: <b>${d.tasks}</b></div>
+  <div style="color:#4a5568;margin-top:6px">💙 Small steps matter</div>
+  `;
+}
+
+/* AGENT FLOW */
+function animateAgents(list){
+  let box=document.getElementById("agentBox");
+  box.innerHTML="";
+  let i=0;
+
+  function step(){
+    if(i<list.length){
+      box.innerHTML+="⚡ "+list[i]+"<br>";
+      i++;
+      setTimeout(step,400);
+    }
+  }
+  step();
+}
+
+/* SEND */
+async function send(){
+  let msg=document.getElementById("msg").value;
+  if(!msg) return;
+
+  addMessage(msg,"user");
+  document.getElementById("msg").value="";
+
+  document.getElementById("agentBox").innerHTML="🤖 Thinking...";
+
+  let res=await fetch("/chat",{
+    method:"POST",
+    headers:{"Content-Type":"application/json"},
+    body:JSON.stringify({message:msg})
+  });
+
+  let data=await res.json();
+
+  animateAgents(data.agents);
+  updateDashboard(data.dashboard);
+
+  setTimeout(()=>{
+    addMessage(data.message,"bot");
+  },500);
+}
+
+/* VOICE */
+function voice(){
+ const rec=new(window.SpeechRecognition||window.webkitSpeechRecognition)();
+ rec.onresult=e=>{
+   document.getElementById("msg").value=e.results[0][0].transcript;
+   send();
+ };
+ rec.start();
+}
+
+</script>
+
+</body>
+</html>
