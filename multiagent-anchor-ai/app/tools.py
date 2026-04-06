@@ -3,11 +3,14 @@ from app.db import save_event, get_events, update_dashboard
 
 AVAILABLE_SLOTS = ["9AM", "10AM", "11AM", "2PM", "3PM", "4PM"]
 
-
 def extract_time(text):
-    match = re.search(r'\b(\d{1,2}(AM|PM|am|pm))\b', text)
-    return match.group(1).upper() if match else "10AM"
+    import re
 
+    match = re.search(r'\b(\d{1,2})\s*(AM|PM|am|pm)\b', text)
+    if match:
+        return f"{match.group(1)}{match.group(2).upper()}"
+
+    return "10AM"
 
 # 💙 SUPPORT AGENT
 def support(x):
